@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr"> 
+	<head>
+		<title>jQuery-Air</title>
+		
+		<meta http-equiv="content-language" content="en" />
+		<meta name="author" content="grischa andreew" />
+		<meta name="language" content="en" />
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+		<link rel="stylesheet" type="text/css" href="./assets/yui.css" >
+		<link rel="stylesheet" type="text/css" href="./assets/test.css" >
+		<script type="text/javascript" src="./assets/inspector.js"></script>
+		<script type="text/javascript" src="./assets/jquery.js"></script>
+		<script type="text/javascript" src="./assets/syntax.js"></script>
+		<script type="text/javascript" src="../air.js"></script>
+		<script type="text/javascript">
+			jQuery.air.load( true );
+		</script>
+		
+	</head>
+	<body>
+		<div id="doc3" class="yui-t2">
+			<div id="hd">
+				
+			</div>
+			<div id="bd">
+				<div id="yui-main">
+					<div class="yui-b t">
+							
+					</div>
+				</div>
+				<div id="sd" class="yui-b">
+					
+				</div>
+			</div>
+			<div id="ft">
+			</div>
+		</div>
+		<script type="text/javascript">
+		$(document).ready(function(){
+			
+			var bod = $( '#yui-main > .yui-b' ),
+				sd = $('#sd');
+				
+			function getFileToMethods ( n ) {
+				var f = new jQuery.air.file( 'app' );
+				//jQuery.air.log( f );
+				bod.html( 'reading: ' +f.name() );
+				f.resolve( n + ".js" );
+				f.read( function ( text ) {
+					bod.html( "<pre><code class='javascript'>"+text+"</code></pre>" );
+					window.setTimeout( function(){
+						dp.sh.HighlightAll( 'javascript',false,false,false,true,false );
+					}, 1 );
+				} );
+			}
+			
+			function getAllInOne ( ) {
+				var txt = "";
+				var f = new jQuery.air.file( 'app' );
+				function r ( ) {
+					bod.html( 'jQuery.air is writeing jquery-air.js on the desktop...' );
+					var fc = new jQuery.air.file( 'desktop' );
+					fc.resolve( 'jquery-air.js' );
+					fc.save( txt );
+					bod.html( 'jquery-air.js on the desktop is ready to use...' );
+				}
+				var i = 0, last = jQuery.air.modules.length,m = jQuery.air.modules;
+				m.unshift( 'air' );
+				function read(){
+					if( i == last ) return r();
+					var n = m[i];
+					var f = new jQuery.air.file( 'app' );
+					f.resolve( n + ".js" );
+					bod.html( 'jQuery.air is reading '+f.name()+'...' );
+					f.read( function ( text ) {
+						txt += text;
+						i++;
+						read();
+					}, 	function ( text ) {
+							jQuery.air.log( arguments,'here is a error by reading files' );
+							i++;
+							read();
+					});
+					
+				}
+				read();
+			}
+			
+			function showClass ( n ) {
+				var buttons = "<div><div class='btns'>";
+				buttons += "<div class='source-code'>SourceCode</div>";
+				buttons += "<div class='debug-class'>DebugClass</div>";
+				if( jQuery.air[ n ].testSuite )
+					buttons += "<div class='start-test'>StartTests</div>";
+				buttons += "</div><div class='btns-contents'></div></div>";
+				buttons = $(buttons);
+				var btns = buttons.find( '.btns' ),
+					contents = buttons.find( '.btns-contents' );
+				jQuery.air.log( contents );
+				
+				buttons.find( '.soure-code' ).click( function ( ) {
+					var f = new jQuery.air.file( 'app' );
+					contents.html( 'reading: ' +f.name() );
+					f.resolve( n + ".js" );
+					f.read( function ( text ) {
+						contents.html( "<pre><code class='javascript'>"+text+"</code></pre>" );
+						window.setTimeout( function(){
+							dp.sh.HighlightAll( 'javascript',false,false,false,true,false );
+						}, 1 );
+					} );
+					return false;
+				} );
+				buttons.find( '.debug-class' ).click( function ( ) {
+					var o = jQuery.air[ n ];
+					for( var k in o ) {
+						jQuery.air.log( k, o[k] );
+					}
+					return false;
+				} );
+				buttons.find( '.start-test' ).click( function ( ) {
+					jQuery.air[n].testSuite( contents );
+					return false;
+				} );
+				bod.empty().append( buttons );
+			}
+			//$.air.log(jQuery.air.request.testSuite);
+			
+			$.each(jQuery.air.modules, function(i,n){
+				if( jQuery.air[n] ) {
+					sd.append( $('<div>jQuery.air.'+n+'</div>').click(function(){
+						bod.html( 'jQuery.air.'+n+' loading methods...' );
+						getFileToMethods( n );
+					}) );
+					if( jQuery.air[n].testSuite ) {
+						sd.append( $('<div>jQuery.air.'+n+' tests</div>').click(function(){
+							//bod.html( 'jQuery.air.'+n+' loading tests...' );
+							var testContainer = $( '<div class="test '+n+'"></div>' );
+							bod.empty().append( testContainer );
+							jQuery.air[n].testSuite( testContainer );
+						}) );
+					}
+				}	
+			});
+			sd.append( $('<div>get all jQuery.air in a file on desktop</div>').click(function(){
+				getAllInOne();
+			}) );
+			new $.air.security();
+			
+		});
+		</script>
+	</body>
+</html>
